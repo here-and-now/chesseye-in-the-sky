@@ -18,13 +18,14 @@ while True:
     # cv2.imshow('cv2_thresh', thresh)
 
     # Remove noise with morph operations
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,3))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1,1))
     opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=1)
     # cv2.imshow('cv2_opening', opening)
 
     #invert image
     invert = 255 - opening
-    # cv2.imshow('cv2_invert', invert)
+    # invert = opening
+    cv2.imshow('cv2_invert', invert)
 
     # Find contours and find squares with contour area filtering + shape approximation
     contours, hierarchy = cv2.findContours(invert, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -37,12 +38,14 @@ while True:
             x,y,w,h = cv2.boundingRect(c)
             cv2.drawContours(original, [c], -1, (36,255,12), 2)
             cv2.drawContours(mask, [c], -1, (255,255,255), -1)
+            # cv2.drawContours(mask, [c], -1, (0,0,0), -1)
+
 
 
     cv2.imshow("cv2_original", original)
     cv2.imshow("cv2_mask", mask)
 
-    time.sleep(0.5)
+    # time.sleep(0.5)
     if cv2.waitKey(1) == 27:
         break
 
