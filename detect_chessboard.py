@@ -8,6 +8,8 @@ camera = cv2.VideoCapture(0)
 
 while True:
     # Detect inner chessboard corners
+    plt.clf()
+
     ret, img = camera.read()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     ret, corners = cv2.findChessboardCorners(gray, (7, 7), None)
@@ -22,22 +24,27 @@ while True:
         # expand 7,7,2 array to 8,8,2 array
         #corners = np.pad(corners, ((1,1),(1,1),(0,0)), 'constant', constant_values=0)
 
-        line1 = corners[1]
-        plt.plot(line1[:,0], line1[:,1])
+        # #horizontal lines
+        for i in range(len(corners[:,0])):
+            line = corners[i,:]
+            #plt.plot(line[:,0], line[:,1])
+            a, b = np.polyfit(line[:,0], line[:,1], 1)
+            average_distance = np.mean(np.diff(line[:,0]))
+            padded_line = np.pad(line[:,0], (1,1), 'constant', constant_values=(line[0,0]-average_distance, line[-1,0]+average_distance))
+            plt.plot(padded_line, a*padded_line + b)
 
-        a, b = np.polyfit(line1[:,0], line1[:,1], 1)
-
-        average_distance = np.mean(np.diff(line1[:,0]))
-        padded_line = np.pad(line1[:,0], (1,1), 'constant', constant_values=(line1[0,0]-average_distance, line1[-1,0]+average_distance))
-
-
-        plt.plot(line1[:,0], a*line1[:,0] + b)
-
-        # plot fitted line,
-
-
+        # #vertical lines
+        for i in range(len(corners[0,:])):
+            line = corners[:,i]
+            #plt.plot(line[:,0], line[:,1])
+            a, b = np.polyfit(line[:,0], line[:,1], 1)
+            # average_distance = np.mean(np.diff(line[:,0]))
+            average_distance = np.mean(np.diff(line[:,0]))
+            padded_line = np.pad(line[:,0], (1,1), 'constant', constant_values=(line[0,0]-average_distance, line[-1,0]+average_distance))
+            plt.plot(padded_line, a*padded_line + b)
 
 
+    
     plt.xlim(0, 640)
     plt.ylim(480, 0)
     plt.show()
