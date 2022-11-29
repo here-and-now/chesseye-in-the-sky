@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 
 
 camera = cv2.VideoCapture(0)
+camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 while True:
     # Detect inner chessboard corners
@@ -32,6 +34,9 @@ while True:
             average_distance = np.mean(np.diff(line[:,0]))
             padded_line = np.pad(line[:,0], (1,1), 'constant', constant_values=(line[0,0]-average_distance, line[-1,0]+average_distance))
             plt.plot(padded_line, a*padded_line + b)
+            # draw line on image
+            cv2.line(img, (int(padded_line[0]), int(a*padded_line[0] + b)), (int(padded_line[-1]), int(a*padded_line[-1] + b)), (0,255,0), 2)
+
 
         # #vertical lines
         for i in range(len(corners[0,:])):
@@ -42,14 +47,18 @@ while True:
             average_distance = np.mean(np.diff(line[:,0]))
             padded_line = np.pad(line[:,0], (1,1), 'constant', constant_values=(line[0,0]-average_distance, line[-1,0]+average_distance))
             plt.plot(padded_line, a*padded_line + b)
+            # draw line on image
+            cv2.line(img, (int(padded_line[0]), int(a*padded_line[0] + b)), (int(padded_line[-1]), int(a*padded_line[-1] + b)), (0,0,255), 2)
 
 
-    
+
+
+
     plt.xlim(0, 640)
     plt.ylim(480, 0)
-    plt.show()
+    #plt.show()
 
-    #cv2.imshow('cv2_img', img)
+    cv2.imshow('cv2_img', img)
 
     if cv2.waitKey(1) == 27:
         break
