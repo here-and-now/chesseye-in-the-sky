@@ -18,6 +18,10 @@ while True:
     # Hough line detection
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray, 0, 250, apertureSize=3)
+
+    # kernel = np.ones((3, 3), np.uint8)
+    # edges = cv2.dilate(edges, kernel, iterations=1)
+
     cv2.imshow('cv22edges', edges)
 
     lines = cv2.HoughLines(edges, 1, np.pi / 180, 120)
@@ -54,7 +58,7 @@ while True:
         angle = line[1]
         angle_count = 0
         for line2 in line_list:
-            if abs(line2[1] - angle) < 2:
+            if abs(line2[1] - angle) < 1:
                 angle_count += 1
         if angle_count > most_common_angle_count:
             most_common_angle_count = angle_count
