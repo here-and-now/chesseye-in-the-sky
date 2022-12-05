@@ -84,6 +84,19 @@ def filter_lines(lines, rho_threshold=0.1, theta_threshold=np.pi / 180):
 
     return filtered_lines
 
+def intersections(h, v):
+    points = []
+    # reshape h,v
+    h = np.reshape(h, (-1, 2))
+    v = np.reshape(v, (-1, 2))
+
+    for rho_h, theta_h in h:
+        for rho_v, theta_v in v:
+            A = np.array([[np.cos(theta_h), np.sin(theta_h)], [np.cos(theta_v), np.sin(theta_v)]])
+            b = np.array([rho_h, rho_v])
+            point = np.linalg.solve(A, b)
+            points.append(point)
+    return np.array(points)
 
 while True:
     ret_val, img = cam.read()
@@ -114,6 +127,13 @@ while True:
         # Draw lines
         img = draw_lines(img, v_lines, [0, 0, 255], thickness=1)
         img = draw_lines(img, h_lines, [0, 255, ], thickness=1)
+
+        # Find intersections
+        points = intersections(h_lines, v_lines)
+
+        # Draw intersections
+        for point in points:
+            cv2.circle(img, tuple(point.astype(int)), 5, [0, 255, 0], -1)
 
 
         cv2.imshow('cv2_board', img)
