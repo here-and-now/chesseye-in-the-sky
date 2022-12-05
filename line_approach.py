@@ -2,6 +2,11 @@ import cv2
 import chess
 import time
 import numpy as np
+import scipy.cluster as clstr
+import scipy.spatial as spatial
+from collections import defaultdict
+from functools import partial
+
 
 cam = cv2.VideoCapture(0)
 
@@ -86,7 +91,6 @@ def filter_lines(lines, rho_threshold=0.1, theta_threshold=np.pi / 180):
 
 def intersections(h, v):
     points = []
-    # reshape h,v
     h = np.reshape(h, (-1, 2))
     v = np.reshape(v, (-1, 2))
 
@@ -97,6 +101,27 @@ def intersections(h, v):
             point = np.linalg.solve(A, b)
             points.append(point)
     return np.array(points)
+
+
+def cluster(points, max_dist=5):
+    Y = spatial.distance.pdist(points)
+    Z = clstr.hierarchy.single(Y)
+    T = clstr.hierarchy.fcluster(Z, max_dist, 'distance')
+    clusters = defaultdict(list)
+    for i in range(len(T)):
+        clusters[T[i]].append(points[i])
+    clusters = clusters.values()
+    clusters = map(lambda arr: (np.mean(np.array(arr)[:,0]), np.mean(np.array(arr)[:,1])), clusters)
+    return clusters
+
+
+def closest_point(points, loc):
+    dists = np.array(map(partial(spatial.distance.euclidean, loc), points))
+    closest_point = points[np.argmin(dists)]
+    return closest_point
+
+
+
 
 while True:
     ret_val, img = cam.read()
@@ -130,11 +155,26 @@ while True:
 
         # Find intersections
         points = intersections(h_lines, v_lines)
-
         # Draw intersections
-        for point in points:
-            cv2.circle(img, tuple(point.astype(int)), 5, [0, 255, 0], -1)
+        # for point in points:
+        #     cv2.circle(img, tuple(point.astype(int)), 5, [0, 255, 0], -1)
 
+
+        # from list of points find 81 most inner points
+        # https://stackoverflow.com/questions/48954246/find-sudoku-grid-using-opencv-and-python
+        # find the center of the image
+        center = np.array([img.shape[1] / 2, img.shape[0] / 2])
+        # draw center point
+        cv2.circle(img, tuple(center.astype(int)), 5, [0, 255, 0], -1)
+        # find the closest point to the center
+        center_point = closest_point(points, center)
+        # find the closest points to the center point
+        points = np.array(points)
+        dists = np.array(map(partial(spatial.distance.euclidean, center_point), points))
+        closest_points = points[dists.argsort()[:81]]
+        # draw the closest points
+        for point in closest_points:
+            cv2.circle(img, tuple(point.astype(int)), 5, [0, 0, 255], -1)
 
         cv2.imshow('cv2_board', img)
 
