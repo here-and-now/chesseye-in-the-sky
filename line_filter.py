@@ -3,6 +3,8 @@
 import cv2
 import chess
 import time
+
+import matplotlib.pyplot as plt
 import numpy as np
 
 cam = cv2.VideoCapture(0)
@@ -34,31 +36,38 @@ while True:
     ret_val, img = cam.read()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    edges = cv2.Canny(gray, 90, 150, apertureSize=3)
+    edges = cv2.Canny(gray, 0, 250, apertureSize=3)
     cv2.imshow('cv22edges', edges)
 
-    kernel = np.ones((3, 3), np.uint8)
-    edges = cv2.dilate(edges, kernel, iterations=1)
-    cv2.imshow('cv22edges2', edges)
+    # kernel = np.ones((3, 3), np.uint8)
+    # edges = cv2.dilate(edges, kernel, iterations=1)
+    # cv2.imshow('cv22edges2', edges)
 
     # kernel = np.ones((3, 3), np.uint8)
     # edges = cv2.erode(edges, kernel, iterations=1)
     # cv2.imshow('cv22edges3', edges)
-    lines = cv2.HoughLines(edges, 1, np.pi / 180, 250)
+
+
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 100)
     if lines is None:
         print('No lines found')
         continue
 
     # Draw lines
-    # img = draw_lines(img, lines, color=[0, 0, 255], thickness=1)
+    img = draw_lines(img, lines, color=[0, 0, 255], thickness=1)
 
-
+    plt.clf()
     if filter:
-        rho_threshold = 25
-        theta_threshold = 0.1
+
+
+
+        rho_threshold = 30
+        theta_threshold = 0.5
 
         # how many lines are similar to a given one
         similar_lines = {i : [] for i in range(len(lines))}
+
+
         for i in range(len(lines)):
             for j in range(len(lines)):
                 if i == j:
@@ -72,6 +81,8 @@ while True:
         # ordering the INDECES of the lines by how many are similar to them
         indices = [i for i in range(len(lines))]
         indices.sort(key=lambda x : len(similar_lines[x]))
+
+        
 
         # line flags is the base for the filtering
         line_flags = len(lines)*[True]
@@ -104,8 +115,34 @@ while True:
         else:
             filtered_lines = lines
 
+         # list of angles
+
+        # theta_list = [[theta for rho, theta in line] for line in filtered_lines]
+        # mean = np.mean(theta_list)
+        # # split into two groups
+        # theta_list1 = [theta for theta in theta_list if theta < mean]
+        # theta_list2 = [theta for theta in theta_list if theta > mean]
+        #
+        # # find median of each group
+        # median1 = np.median(theta_list1)
+        # median2 = np.median(theta_list2)
+        #
+        #
+        # # exclude outliers in each group
+        # theta_list1 = [theta for theta in theta_list1 if abs(theta - median1) < 0.1]
+        # theta_list2 = [theta for theta in theta_list2 if abs(theta - median2) < 0.1]
+        #
+        # # conctruct new filtered line list based on the two groups
+        # filtered_lines = []
+        # for line in lines:
+        #     rho, theta = line[0]
+        #     if theta in theta_list1 or theta in theta_list2:
+        #         filtered_lines.append(line)
+
+
         # Draw lines
-        img = draw_lines(img, filtered_lines, color=[0, 255, 0], thickness=2)
+        # img = draw_lines(img, filtered_lines, color=[0, 255, 0], thickness=1)
+        img = draw_lines(img, filtered_lines, color=[255, 0, 0], thickness=2)
 
 
 
